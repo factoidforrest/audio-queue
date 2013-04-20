@@ -1,22 +1,18 @@
-class Audio_source
+class Audio_source < ActiveRecord::Base
 
-attr_reader :name, :ip
+attr_accessible :name, :ip
 
-@@sources = []
+after_create Audio_source.update
+after_destroy Audio_source.update
+after_update Audio_source.update
 
-def initialize(name, ip)
-  @name = name
-  @ip = ip
-  @@sources << self
+class << self
+  def update#create update message and send
+    msg = {resource: 'audio_sources', action: update}
+    $redis.publish 'audio-source-change', msg.to_json
+  end
 end
 
-def delete
-  @@sources.remove(self)
-  Audio_source.remove_instance_variable(self)
-end
 
-def players
-  Player.find(:all)
-end
 
 end
